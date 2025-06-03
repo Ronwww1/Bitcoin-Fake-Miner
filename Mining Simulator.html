@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metasploit Framework Console v6.3.57-dev</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1a1a1a;
+            color: #d4d4d4;
+            font-size: 12px;
+            line-height: 1.4;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            background: #1e1e1e;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #2d2d30;
+            padding: 8px 15px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .status-indicators {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ec9b0;
+        }
+        
+        .status-dot.warning { background: #ffd700; }
+        .status-dot.error { background: #f48771; }
+        
+        .terminal-container {
+            flex: 1;
+            background: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal {
+            height: 100%;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .terminal-line {
+            margin-bottom: 3px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .prompt {
+            color: #4ec9b0;
+            font-weight: 500;
+        }
+        
+        .command {
+            color: #ffffff;
+        }
+        
+        .output {
+            color: #d4d4d4;
+        }
+        
+        .success {
+            color: #4ec9b0;
+        }
+        
+        .warning {
+            color: #ffd700;
+        }
+        
+        .error {
+            color: #f48771;
+        }
+        
+        .info {
+            color: #569cd6;
+        }
+        
+        .highlight {
+            color: #dcdcaa;
+            background: rgba(220, 220, 170, 0.1);
+            padding: 1px 3px;
+            border-radius: 2px;
+        }
+        
+        .hash {
+            color: #ce9178;
+            font-family: monospace;
+        }
+        
+        .ip {
+            color: #9cdcfe;
+        }
+        
+        .currency {
+            color: #f7931a;
+            font-weight: bold;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title {
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .sidebar-item {
+            padding: 6px 8px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .sidebar-item:hover {
+            background: #2a2a2b;
+        }
+        
+        .sidebar-item.active {
+            background: #094771;
+            color: #ffffff;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #3e3e42;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ec9b0, #569cd6);
+            width: 0%;
+            transition: width 0.2s linear;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .stat-item {
+            background: #252526;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #3e3e42;
+        }
+        
+        .stat-value {
+            color: #4ec9b0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .stat-label {
+            color: #969696;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        
+        .footer {
+            background: #2d2d30;
+            padding: 6px 15px;
+            border-top: 1px solid #3e3e42;
+            font-size: 11px;
+            color: #969696;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .exploit-item {
+            padding: 4px 8px;
+            margin: 2px 0;
+            background: #2a2a2b;
+            border-radius: 3px;
+            font-size: 10px;
+            border-left: 3px solid #4ec9b0;
+        }
+        
+        .target-item {
+            padding: 4px 8px;
+            margin: 2px 0;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 3px;
+            font-size: 10px;
+            border-left: 3px solid #ffd700;
+        }
+        
+        .auto-scroll {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Active Modules</div>
+                <div class="sidebar-item active">auxiliary/scanner/discovery/arp_sweep</div>
+                <div class="sidebar-item">auxiliary/scanner/portscan/syn</div>
+                <div class="sidebar-item">exploit/multi/handler</div>
+                <div class="sidebar-item">auxiliary/scanner/smb/smb_version</div>
+                <div class="sidebar-item">exploit/windows/smb/ms17_010_eternalblue</div>
+                <div class="sidebar-item">auxiliary/scanner/ssh/ssh_login</div>
+                <div class="sidebar-item">post/windows/gather/hashdump</div>
+                <div class="sidebar-item">post/multi/gather/bitcoin_core</div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Current Targets</div>
+                <div id="targets-list"></div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Active Exploits</div>
+                <div id="exploits-list"></div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="title">Metasploit Framework Console v6.3.57-dev</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="status-dot"></div>
+                        <span>Connected</span>
+                    </div>
+                    <div class="status">
+                        <div class="status-dot warning"></div>
+                        <span id="active-sessions">0 Sessions</span>
+                    </div>
+                    <div class="status">
+                        <div class="status-dot error"></div>
+                        <span id="exploitation-rate">0/s</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="hosts-discovered">0</div>
+                    <div class="stat-label">Hosts Discovered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vulnerabilities">0</div>
+                    <div class="stat-label">Vulnerabilities</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="shells-acquired">0</div>
+                    <div class="stat-label">Shells Acquired</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="data-extracted">0 GB</div>
+                    <div class="stat-label">Data Extracted</div>
+                </div>
+            </div>
+            
+            <div class="terminal-container">
+                <div class="terminal auto-scroll" id="terminal"></div>
+            </div>
+            
+            <div class="footer">
+                <span>msf6 > Resource: /opt/metasploit-framework/scripts/resource/auto_exploit.rc</span>
+                <span>Memory: <span id="memory-usage">0</span>MB | CPU: <span id="cpu-usage">0</span>%</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let hostsDiscovered = 0;
+        let vulnerabilities = 0;
+        let shellsAcquired = 0;
+        let dataExtracted = 0;
+        let activeSessions = 0;
+        let exploitationRate = 0;
+        let lineCount = 0;
+        
+        const terminal = document.getElementById('terminal');
+        const subnets = ['192.168.1', '10.0.0', '172.16.0', '203.0.113', '198.51.100'];
+        const exploitModules = [
+            'exploit/windows/smb/ms17_010_eternalblue',
+            'exploit/linux/ssh/libssh_auth_bypass',
+            'exploit/windows/rdp/cve_2019_0708_bluekeep_rce',
+            'exploit/multi/http/struts2_content_type_ognl',
+            'exploit/windows/dcerpc/ms03_026_dcom',
+            'auxiliary/scanner/ssh/ssh_login',
+            'auxiliary/scanner/smb/smb_login',
+            'exploit/windows/smb/ms08_067_netapi'
+        ];
+        
+        function generateIP(subnet = null) {
+            if (!subnet) subnet = subnets[Math.floor(Math.random() * subnets.length)];
+            return `${subnet}.${Math.floor(Math.random() * 254) + 1}`;
+        }
+        
+        function generateHash(length = 32) {
+            return Array.from({length}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        }
+        
+        function generateBTCAmount() {
+            return (Math.random() * 100 + 0.00001).toFixed(8);
+        }
+        
+        function generateWallet() {
+            const prefixes = ['1', '3', 'bc1q'];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let addr = prefix;
+            const len = prefix.startsWith('bc1') ? 42 : 34;
+            for (let i = 0; i < len - prefix.length; i++) {
+                addr += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return addr;
+        }
+        
+        function addLine(text, className = 'output') {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = `<span class="${className}">${text}</span>`;
+            terminal.appendChild(line);
+            lineCount++;
+            
+            // Auto-scroll
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Limit lines for performance
+            if (lineCount > 2000) {
+                terminal.removeChild(terminal.firstChild);
+                lineCount--;
+            }
+        }
+        
+        function updateStats() {
+            document.getElementById('hosts-discovered').textContent = hostsDiscovered;
+            document.getElementById('vulnerabilities').textContent = vulnerabilities;
+            document.getElementById('shells-acquired').textContent = shellsAcquired;
+            document.getElementById('data-extracted').textContent = (dataExtracted / 1024).toFixed(2);
+            document.getElementById('active-sessions').textContent = `${activeSessions} Sessions`;
+            document.getElementById('exploitation-rate').textContent = `${exploitationRate}/s`;
+            document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 500 + 200);
+            document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 30 + 5);
+        }
+        
+        function updateSidebar() {
+            const targetsList = document.getElementById('targets-list');
+            const exploitsList = document.getElementById('exploits-list');
+            
+            if (Math.random() > 0.7) {
+                const target = document.createElement('div');
+                target.className = 'target-item';
+                target.textContent = generateIP();
+                targetsList.appendChild(target);
+                
+                if (targetsList.children.length > 15) {
+                    targetsList.removeChild(targetsList.firstChild);
+                }
+            }
+            
+            if (Math.random() > 0.8) {
+                const exploit = document.createElement('div');
+                exploit.className = 'exploit-item';
+                exploit.textContent = exploitModules[Math.floor(Math.random() * exploitModules.length)];
+                exploitsList.appendChild(exploit);
+                
+                if (exploitsList.children.length > 10) {
+                    exploitsList.removeChild(exploitsList.firstChild);
+                }
+            }
+        }
+        
+        async function initializeFramework() {
+            addLine('', 'output');
+            addLine('     ,           ,', 'info');
+            addLine('    /             \\', 'info');
+            addLine('   ((__---,,,---__))', 'info');
+            addLine('      (_) O O (_)_________', 'info');
+            addLine('         \\ _ /            |\\', 'info');
+            addLine('          o_o \\   M S F   | \\', 'info');
+            addLine('               \\   _____  |  *', 'info');
+            addLine('                |||   WW|||', 'info');
+            addLine('                |||     |||', 'info');
+            addLine('', 'output');
+            addLine('       =[ metasploit v6.3.57-dev                          ]', 'success');
+            addLine('+ -- --=[ 2363 exploits - 1364 auxiliary - 428 post       ]', 'output');
+            addLine('+ -- --=[ 616 payloads - 45 encoders - 11 nops            ]', 'output');
+            addLine('+ -- --=[ 9 evasion                                       ]', 'output');
+            addLine('', 'output');
+            
+            await sleep(1000);
+            addLine('<span class="prompt">msf6 ></span> <span class="command">resource /opt/metasploit-framework/scripts/resource/auto_exploit.rc</span>', 'output');
+            addLine('[*] Processing /opt/metasploit-framework/scripts/resource/auto_exploit.rc for ERB directives.', 'info');
+            addLine('<span class="highlight">resource (/opt/metasploit-framework/scripts/resource/auto_exploit.rc)></span> use auxiliary/scanner/discovery/arp_sweep', 'output');
+            addLine('<span class="highlight">resource (/opt/metasploit-framework/scripts/resource/auto_exploit.rc)></span> set RHOSTS 192.168.1.0/24', 'output');
+            addLine('<span class="highlight">resource (/opt/metasploit-framework/scripts/resource/auto_exploit.rc)></span> set THREADS 50', 'output');
+            addLine('<span class="highlight">resource (/opt/metasploit-framework/scripts/resource/auto_exploit.rc)></span> run', 'output');
+            
+            startExploitation();
+        }
+        
+        function startExploitation() {
+            isRunning = true;
+            
+            // Network discovery
+            setInterval(() => {
+                if (!isRunning) return;
+                
+                if (Math.random() > 0.3) {
+                    const ip = generateIP();
+                    addLine(`[+] <span class="ip">${ip}</span> is alive`, 'success');
+                    hostsDiscovered++;
+                    
+                    // Port scan results
+                    setTimeout(() => {
+                        const ports = [21, 22, 23, 25, 53, 80, 135, 139, 443, 445, 993, 995, 1433, 3306, 3389, 5432, 5900, 8080];
+                        const openPorts = ports.filter(() => Math.random() > 0.7);
+                        if (openPorts.length > 0) {
+                            addLine(`[+] <span class="ip">${ip}</span> - Open ports: ${openPorts.join(', ')}`, 'info');
+                        }
+                    }, 500);
+                }
+                
+                exploitationRate = Math.floor(Math.random() * 50 + 20);
+                updateStats();
+            }, 200);
+            
+            // Vulnerability detection
+            setInterval(() => {
+                if (!isRunning) return;
+                
+                if (Math.random() > 0.4) {
+                    const ip = generateIP();
+                    const vulns = [
+                        'MS17-010 (EternalBlue)',
+                        'CVE-2019-0708 (BlueKeep)',
+                        'CVE-2021-34527 (PrintNightmare)',
+                        'CVE-2020-1472 (Zerologon)',
+                        'CVE-2017-0144 (EternalBlue)',
+                        'CVE-2008-4250 (MS08-067)',
+                        'CVE-2021-44228 (Log4Shell)',
+                        'CVE-2022-26134 (Atlassian)'
+                    ];
+                    const vuln = vulns[Math.floor(Math.random() * vulns.length)];
+                    addLine(`[!] <span class="ip">${ip}</span> - Vulnerable to <span class="warning">${vuln}</span>`, 'warning');
+                    vulnerabilities++;
+                }
+            }, 800);
+            
+            // Exploitation attempts
+            setInterval(() => {
+                if (!isRunning) return;
+                
+                if (Math.random() > 0.6) {
+                    const ip = generateIP();
+                    const module = exploitModules[Math.floor(Math.random() * exploitModules.length)];
+                    addLine(`[*] <span class="ip">${ip}</span> - Executing ${module}`, 'info');
+                    
+                    setTimeout(() => {
+                        if (Math.random() > 0.3) {
+                            addLine(`[+] <span class="ip">${ip}</span> - <span class="success">Exploitation successful!</span>`, 'success');
+                            addLine(`[*] <span class="ip">${ip}</span> - Command shell session ${++activeSessions} opened`, 'info');
+                            shellsAcquired++;
+                            
+                            // Post-exploitation
+                            setTimeout(() => postExploit(ip), 2000);
+                        } else {
+                            addLine(`[-] <span class="ip">${ip}</span> - Exploitation failed`, 'error');
+                        }
+                    }, 1500);
+                }
+            }, 1200);
+            
+            // System monitoring
+            setInterval(() => {
+                if (!isRunning) return;
+                updateSidebar();
+                updateStats();
+            }, 500);
+        }
+        
+        async function postExploit(ip) {
+            addLine(`[*] <span class="ip">${ip}</span> - Running post-exploitation modules`, 'info');
+            
+            await sleep(1000);
+            addLine(`[*] <span class="ip">${ip}</span> - Gathering system information`, 'info');
+            
+            const osTypes = ['Windows 10 Pro', 'Windows Server 2019', 'Ubuntu 20.04 LTS', 'CentOS 8', 'Windows 11 Pro'];
+            const os = osTypes[Math.floor(Math.random() * osTypes.length)];
+            addLine(`[+] <span class="ip">${ip}</span> - OS: ${os}`, 'output');
+            
+            await sleep(500);
+            addLine(`[*] <span class="ip">${ip}</span> - Dumping password hashes`, 'info');
+            
+            const usernames = ['Administrator', 'admin', 'user', 'guest', 'root', 'postgres', 'mysql', 'oracle'];
+            for (let i = 0; i < Math.floor(Math.random() * 3 + 1); i++) {
+                const user = usernames[Math.floor(Math.random() * usernames.length)];
+                const hash = generateHash(32);
+                addLine(`[+] <span class="ip">${ip}</span> - ${user}:<span class="hash">${hash}</span>`, 'success');
+            }
+            
+            await sleep(1000);
+            
+            // Cryptocurrency search
+            if (Math.random() > 0.4) {
+                addLine(`[*] <span class="ip">${ip}</span> - Searching for cryptocurrency wallets`, 'info');
+                await sleep(2000);
+                
+                const walletTypes = ['Bitcoin Core', 'Electrum', 'Exodus', 'Atomic Wallet', 'MetaMask', 'Trust Wallet'];
+                const walletType = walletTypes[Math.floor(Math.random() * walletTypes.length)];
+                
+                addLine(`[!] <span class="ip">${ip}</span> - <span class="warning">${walletType} wallet detected!</span>`, 'warning');
+                
+                const walletAddr = generateWallet();
+                const btcAmount = generateBTCAmount();
+                const usdValue = (parseFloat(btcAmount) * (40000 + Math.random() * 30000)).toFixed(2);
+                
+                addLine(`[+] <span class="ip">${ip}</span> - Wallet: <span class="highlight">${walletAddr}</span>`, 'success');
+                addLine(`[+] <span class="ip">${ip}</span> - Balance: <span class="currency">${btcAmount} BTC</span> (~$${parseFloat(usdValue).toLocaleString()})`, 'success');
+                
+                await sleep(1500);
+                addLine(`[*] <span class="ip">${ip}</span> - Extracting private keys`, 'info');
+                
+                const privateKey = generateHash(64);
+                addLine(`[+] <span class="ip">${ip}</span> - Private key: <span class="hash">${privateKey}</span>`, 'success');
+                
+                await sleep(2000);
+                addLine(`[*] <span class="ip">${ip}</span> - Initiating transfer protocol`, 'info');
+                
+                const targetWallet = generateWallet();
+                addLine(`[*] <span class="ip">${ip}</span> - Target: <span class="highlight">${targetWallet}</span>`, 'info');
+                
+                await sleep(3000);
+                const txHash = generateHash(64);
+                addLine(`[+] <span class="ip">${ip}</span> - <span class="success">Transfer completed</span>`, 'success');
+                addLine(`[+] <span class="ip">${ip}</span> - TX: <span class="hash">${txHash}</span>`, 'success');
+                
+                dataExtracted += parseFloat(usdValue);
+            }
+            
+            // File system enumeration
+            await sleep(1000);
+            addLine(`[*] <span class="ip">${ip}</span> - Enumerating file system`, 'info');
+            
+            const files = [
+                'passwords.txt', 'backup.zip', 'database.sql', 'config.xml',
+                'keys.pem', 'wallet.dat', 'private.key', 'credentials.json'
+            ];
+            
+            files.forEach(file => {
+                if (Math.random() > 0.6) {
+                    const size = Math.floor(Math.random() * 1000 + 10);
+                    addLine(`[+] <span class="ip">${ip}</span> - Found: ${file} (${size}KB)`, 'output');
+                    dataExtracted += size;
+                }
+            });
+            
+            await sleep(1000);
+            addLine(`[*] <span class="ip">${ip}</span> - Establishing persistence`, 'info');
+            addLine(`[+] <span class="ip">${ip}</span> - Backdoor installed: /tmp/.system32`, 'success');
+            
+            await sleep(500);
+            addLine(`[*] <span class="ip">${ip}</span> - Cleaning traces`, 'info');
+            addLine(`[+] <span class="ip">${ip}</span> - Session backgrounded`, 'output');
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Auto-start
+        window.onload = () => {
+            setTimeout(initializeFramework, 1000);
+        };
+    </script>
+</body>
+</html>
