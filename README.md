@@ -1,4 +1,9 @@
+
 # Bitcoin-Fake-Miner
+
+![Снимок экрана 2025-06-06 204127.png](https://github.com/Ronwww1/Bitcoin-Fake-Miner/blob/bdcea3ac93786d0dada052b15e54e956d269886d/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-06-06%20204127.png)
+
+
     ОБЪЯСНЕНИЕ НА РУССКОМ И АНГЛИЙСКОМ
     EXPLANATION IN RUSSIAN AND ENGLISH
 
